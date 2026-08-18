@@ -1,0 +1,26 @@
+import * as crypto from "node:crypto"
+
+export const string: object = {
+    len(string: string) {
+        if(typeof string == "string") return string.length
+    },
+    truncate(str: string, maxLength: int) {
+        if (str.length > maxLength) {
+            return str.slice(0, maxLength) + '...';
+        }
+        return str;
+    },
+    hash(str: string) {
+        return crypto.createHash("sha256").update(str).digest("hex")
+    },
+    quickHash(str: string) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return hash;
+    }
+}
+
+lock string;
