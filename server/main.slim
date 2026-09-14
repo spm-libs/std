@@ -1,0 +1,180 @@
+import http from "http";
+
+export type ServerInstance = typeof Server;
+
+class Server {
+    constructor(port: int = 3000) {
+        this.port = port;
+        this.routes = {};
+        this.apiRoutes = {};
+        this.clients = [];
+    }
+
+	page(path: string, render: function, options: object) {
+		let additionalScript = ""
+		let scriptId = 0;
+
+		func renderTag(content: string[]) {
+			const tags: object = {
+				"css": {
+					tag: "link",
+					attr: "href",
+					additionalAttrs: {
+						rel: "stylesheet"
+					}
+				},
+				"js": {
+					tag: "script",
+					attr: "src"
+				},
+			}
+
+			content.forEach(c => {
+			    const ext = c.split(".").pop();
+
+			    if (ext in tags) {
+			     	const tag = tags[ext].tag;
+				    const attr = tags[ext].attr;
+					const varName = `${tag}_${scriptId++}`;
+					let additional = ""
+
+					if ("additionalAttrs" in tags[ext]) {
+						const additionalAttrs = tags[ext].additionalAttrs
+
+						Object.keys(additionalAttrs).forEach(e => {
+							additional += `${varName}.${e} = "${additionalAttrs[e]}"`
+						})
+					}
+
+				    additionalScript += `
+			       		const ${varName} = document.createElement("${tag}");
+						${varName}.${attr} = ${JSON.stringify(c)};
+						${additional}
+			        	document.head.appendChild(${varName});
+					`;
+			    }
+			});
+		}
+
+		if ("head" in options) {
+			renderTag(options.head)
+		}
+		if ("title" in options) {
+			additionalScript += `document.title = "${options.title}";`
+		}
+
+        this.get(path, (req, res) => {
+            const isDev = process.env.SLIM_DEV === "1"
+			let html = render({ dev: isDev });
+			const eventsScript = __flush_events__();
+
+			html += `<script>`
+
+			html += additionalScript
+
+            if (isDev) {
+                html += `
+                    (function () {
+                        let connectedBefore = false;
+
+                        const es = new EventSource("/__slim_reload__");
+
+                        es.onopen = () => {
+                            if (connectedBefore) {
+                                location.reload();
+                                return;
+                            }
+                            connectedBefore = true;
+                        };
+                    })();`;
+			}
+
+            html += `</script>`
+
+            if (eventsScript) {
+                html += `<script>${eventsScript}</script>`
+            }
+
+            res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8",
+                "Cache-Control": "no-store"
+            });
+
+            res.end(html);
+        });
+    }
+
+    get(path: string, callback: function) {
+        this.routes[path] = callback;
+    }
+
+    api(path: string, handler: function) {
+        this.apiRoutes[path] = handler;
+    }
+
+    start() {
+        this.get("/__slim_reload__", (req, res) => {
+            res.writeHead(200, {
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive"
+            });
+
+            res.write("retry: 300\n\n");
+
+            this.clients.push(res);
+
+            req.on("close", () => {
+                this.clients = this.clients.filter(x => x !== res);
+            });
+        });
+
+        http.createServer((req, res) => {
+            const url = req.url.split("?")[0];
+
+            const route = this.routes[url];
+
+            if (route) {
+                route(req, res);
+                return;
+            }
+
+            const apiRoute = this.apiRoutes[url];
+
+            if (apiRoute) {
+                let body = "";
+                req.on("data", chunk => { body += chunk });
+                req.on("end", async () => {
+                    let data = null;
+
+                    if (body) {
+                        try {
+                            data = JSON.parse(body);
+                        } catch (e) {
+                            res.writeHead(400, { "Content-Type": "application/json" });
+                            res.end(JSON.stringify({ error: "Invalid JSON body" }));
+                            return;
+                        }
+                    }
+
+                    try {
+                        const result = await apiRoute(data, req);
+                        res.writeHead(200, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify(result ?? null));
+                    } catch (e) {
+                        res.writeHead(500, { "Content-Type": "application/json" });
+                        res.end(JSON.stringify({ error: e && e.message ? e.message : String(e) }));
+                    }
+                });
+                return;
+            }
+
+            res.writeHead(404);
+            res.end("404");
+        }).listen(this.port);
+
+        log(`http://localhost:${this.port}`);
+    }
+}
+
+export { Server };
