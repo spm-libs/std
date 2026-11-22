@@ -1,0 +1,59 @@
+use { int, float, number, string, bool, bigint, symbol, array, date, json, jsonstr } from "../converters/main"
+use { parseJSON, parseText, ReadError } from "../parse/main"
+use { range } from "../helpers/array"
+use StringHelper from "../helpers/string"
+use { replaceBackslashes } from "../helpers/path"
+use { RequestHelper } from "../helpers/request"
+use TimeHelper from "../time/main"
+use { getConfigData } from "../main"
+
+test("converters", () => {
+    assertEqual(int("42"), 42)
+    assertThrows(() => int("4.5"), "Cannot convert")
+    assertEqual(float("1.5"), 1.5)
+    assertEqual(number("2"), 2)
+    assertEqual(string(5), "5")
+    assertEqual(bool(" TRUE "), true)
+    assertEqual(bool("0"), false)
+    assertEqual(bool(0), false)
+    assertEqual(bigint("12345678901234567890"), 12345678901234567890n)
+    assertThrows(() => bigint("1.5"), "Cannot convert")
+    assertEqual(typeof symbol("x"), "symbol")
+    assertDeepEqual(array(3), [3])
+    assertDeepEqual(array([1]), [1])
+    assertEqual(date(1700000000123).toISOString(), "2023-11-14T22:13:20.123Z")
+    assertDeepEqual(json(`{"a":1}`), { a: 1 })
+    assertThrows(() => json("{oops"), "Invalid JSON")
+    assertEqual(jsonstr({ a: 1 }), `{"a":1}`)
+})
+
+test("reading files", async () => {
+    assertEqual((await parseJSON("tests/fixture.json")).name, "fixture")
+    assert((await parseText("tests/fixture.json")).includes("fixture"))
+    await assertRejects(() => parseText("tests/missing.txt"), ReadError)
+})
+
+test("helpers", () => {
+    assertDeepEqual(range(1, 4), [1, 2, 3, 4])
+    assertEqual(StringHelper.len("hello"), 5)
+    assertEqual(StringHelper.truncate("hello world", 5), "hello...")
+    assertEqual(StringHelper.truncate("hi", 5), "hi")
+    assertEqual(StringHelper.hash("abc"), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    assertEqual(StringHelper.quickHash("hello"), 99162322)
+    assertEqual(StringHelper.quickHash("a"), 97)
+    assertEqual(replaceBackslashes(String.raw`a\b\c`), "a/b/c")
+    assertEqual(typeof new RequestHelper({ baseURL: "https://example.com" }).get, "function")
+})
+
+test("time", () => {
+    assertEqual(TimeHelper.toUnix(1700000000123), 1700000000)
+    assertEqual(TimeHelper.toUnix(1700000000), 1700000000)
+    const date = new Date(1700000000 * 1000)
+    const day = String(date.getDate()).padStart(2, "0")
+    assertEqual(TimeHelper.toDate(1700000000, { format: "{{dd}}|{{yyyy}}|{{ii}}" }), `${day}|${date.getFullYear()}|000`)
+    assert(TimeHelper.now() > 1700000000000)
+})
+
+test("the project", async () => {
+    assertEqual((await getConfigData()).workDir, undefined)
+})

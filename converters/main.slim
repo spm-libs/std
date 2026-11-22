@@ -1,6 +1,6 @@
-use { SymbolInstance, AnyArray } from @slim/types/common
-use { TimeStamp } from @slim/types/time
-use { JSONString } from @slim/types/formats
+use { SymbolInstance, AnyArray } from "../types/common"
+use { TimeStamp } from "../types/time"
+use { JSONString } from "../types/formats"
 
 export func int(value: string | int): int {
     if (kindof value == "int") return value
@@ -59,7 +59,7 @@ export func bool(value: int | float | string | bool): bool {
     return Boolean(value)
 }
 
-export func bigint(value: number): number {
+export func bigint(value: string | int | bigint): bigint {
     try {
         return BigInt(value)
     }

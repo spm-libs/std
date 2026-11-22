@@ -1,9 +1,9 @@
 use * as crypto from "node:crypto"
-use { SHA256, QuickHash } from @slim/types/hash
+use { SHA256, QuickHash } from "../types/hash"
 
 export default const StringHelper: object = {
     len(str: string): int {
-        if(kindof str == "string") return str.length
+        return str.length
     },
     truncate(str: string, maxLength: int): string {
         if (str.length > maxLength) {

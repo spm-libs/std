@@ -1,3 +1,6 @@
-export type gmail(v) {
+export type gmail(v) extends string {
     return /^[a-z0-9.]+@gmail\.com$/i.test(v)
+}
+export type email(v) extends string {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 }

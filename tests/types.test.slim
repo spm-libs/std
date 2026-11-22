@@ -1,0 +1,76 @@
+use { positive, negative, natural, nonZero, even, odd } from "../types/numerical"
+use { email, gmail } from "../types/mails"
+use { url, uuid, SemVer, JSONString, HTMLString, HTMLObject } from "../types/formats"
+use { nonempty, AnyArray, SymbolInstance } from "../types/common"
+use { SHA256, QuickHash } from "../types/hash"
+use { TimeStamp } from "../types/time"
+
+const accepts = (check: () => void) => {
+    try {
+        check()
+        return true
+    } catch (error) {
+        return false
+    }
+}
+
+const outside = (text: string) => JSON.parse(text)
+
+test("numbers", () => {
+    assert(accepts(() => { let v: positive = outside("0.5") }))
+    assert(!accepts(() => { let v: positive = outside("0") }))
+    assert(accepts(() => { let v: negative = outside("-3") }))
+    assert(!accepts(() => { let v: negative = outside("0") }))
+    assert(accepts(() => { let v: natural = outside("0") }))
+    assert(!accepts(() => { let v: natural = outside("1.5") }))
+    assert(accepts(() => { let v: nonZero = outside("-2") }))
+    assert(!accepts(() => { let v: nonZero = outside("0") }))
+    assert(accepts(() => { let v: even = outside("4") }))
+    assert(!accepts(() => { let v: even = outside("3") }))
+    assert(accepts(() => { let v: odd = outside("3") }))
+    assert(!accepts(() => { let v: odd = outside("4") }))
+    assert(!accepts(() => { let v: positive = outside(`"5"`) }))
+    assert(!accepts(() => { let v: even = outside("2.5") }))
+    assert(!accepts(() => { let v: natural = outside(`"3"`) }))
+    assert(!accepts(() => { let v: nonZero = outside("[1]") }))
+})
+
+test("mails", () => {
+    assert(accepts(() => { let v: email = outside(`"a@b.co"`) }))
+    assert(!accepts(() => { let v: email = outside(`"a b@c.d"`) }))
+    assert(accepts(() => { let v: gmail = outside(`"Ada.L@GMAIL.com"`) }))
+    assert(!accepts(() => { let v: gmail = outside(`"ada@mail.com"`) }))
+    assert(!accepts(() => { let v: gmail = outside(`["ada@gmail.com"]`) }))
+})
+
+test("formats", () => {
+    assert(accepts(() => { let v: url = outside(`"https://example.com/a?b=1"`) }))
+    assert(!accepts(() => { let v: url = outside(`"ftp://example.com"`) }))
+    assert(accepts(() => { let v: uuid = outside(`"550E8400-e29b-41d4-a716-446655440000"`) }))
+    assert(!accepts(() => { let v: uuid = outside(`"550e8400"`) }))
+    assert(accepts(() => { let v: SemVer = outside(`"2.0.0-beta.1+build.5"`) }))
+    assert(!accepts(() => { let v: SemVer = outside(`"2.0"`) }))
+    assert(!accepts(() => { let v: SemVer = outside(`["1.2.3"]`) }))
+    assert(accepts(() => { let v: JSONString = outside(`"[1,2]"`) }))
+    assert(!accepts(() => { let v: JSONString = outside(`"{oops"`) }))
+    assert(!accepts(() => { let v: JSONString = outside("5") }))
+    assert(accepts(() => { let v: HTMLString = outside(`"<b>hi</b>"`) }))
+    assert(!accepts(() => { let v: HTMLString = outside(`"hi"`) }))
+    assert(!accepts(() => { let v: HTMLString = outside(`["<b>"]`) }))
+    assert(!accepts(() => { let v: HTMLObject = outside(`{}`) }))
+})
+
+test("common, hash and time", () => {
+    assert(accepts(() => { let v: nonempty = outside("[1]") }))
+    assert(!accepts(() => { let v: nonempty = outside(`""`) }))
+    assert(accepts(() => { let v: AnyArray = outside("[]") }))
+    assert(!accepts(() => { let v: AnyArray = outside("{}") }))
+    assert(accepts(() => { let v: SymbolInstance = Symbol("s") }))
+    assert(accepts(() => { let v: SHA256 = outside(`"${"a".repeat(64)}"`) }))
+    assert(!accepts(() => { let v: SHA256 = outside(`"${"z".repeat(64)}"`) }))
+    assert(accepts(() => { let v: QuickHash = outside("-97") }))
+    assert(!accepts(() => { let v: QuickHash = outside("4294967296") }))
+    assert(!accepts(() => { let v: QuickHash = outside(`"abc"`) }))
+    assert(accepts(() => { let v: TimeStamp = outside("1700000000123") }))
+    assert(!accepts(() => { let v: TimeStamp = outside("1700000000") }))
+})

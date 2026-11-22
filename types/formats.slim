@@ -9,15 +9,21 @@ export func __isJSON(value) {
 }
 
 export type HTMLObject(v) {
-    return v instanceof HTMLElement
+    return globalThis.HTMLElement != undefined && v instanceof globalThis.HTMLElement
 }
-export type HTMLString(v) {
-    return /<\/?[^>]+(>|$)/g.test(v)
+export type HTMLString(v) extends string {
+    return /<\/?[^>]+(>|$)/.test(v)
 }
-export type JSONString(v) {
+export type JSONString(v) extends string {
     return __isJSON(v)
 }
 
-export type SemVer(v) {
+export type SemVer(v) extends string {
     return /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(v);
+}
+export type url(v) extends string {
+    return /^https?:\/\/[^\s]+$/.test(v)
+}
+export type uuid(v) extends string {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)
 }

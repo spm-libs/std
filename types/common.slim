@@ -4,3 +4,6 @@ export type SymbolInstance(v) {
 export type AnyArray(v) {
     return typeof v == "object" and Array.isArray(v)
 }
+export type nonempty(v) {
+    return (typeof v == "string" || Array.isArray(v)) && v.length > 0
+}
