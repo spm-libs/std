@@ -1,4 +1,4 @@
-use { positive, negative, natural, nonZero, even, odd } from "../types/numerical"
+use { positive, negative, natural, nonZero, even, odd, unit } from "../types/numerical"
 use { email, gmail } from "../types/mails"
 use { url, uuid, SemVer, JSONString, HTMLString, HTMLObject } from "../types/formats"
 use { nonempty, AnyArray, SymbolInstance } from "../types/common"
@@ -33,6 +33,12 @@ test("numbers", () => {
     assert(!accepts(() => { let v: even = outside("2.5") }))
     assert(!accepts(() => { let v: natural = outside(`"3"`) }))
     assert(!accepts(() => { let v: nonZero = outside("[1]") }))
+    assert(accepts(() => { let v: unit = outside("0") }))
+    assert(accepts(() => { let v: unit = outside("1") }))
+    assert(accepts(() => { let v: unit = outside("0.25") }))
+    assert(!accepts(() => { let v: unit = outside("1.01") }))
+    assert(!accepts(() => { let v: unit = outside("-0.1") }))
+    assert(!accepts(() => { let v: unit = outside(`"0.5"`) }))
 })
 
 test("mails", () => {

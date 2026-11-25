@@ -1,0 +1,21 @@
+export func clamp(value: number, low: number, high: number): number {
+    return value < low ? low : value > high ? high : value
+}
+
+export func lerp(from: number, to: number, t: number): number {
+    return from + (to - from) * t
+}
+
+export func inverseLerp(from: number, to: number, value: number): number {
+    return from == to ? 0 : (value - from) / (to - from)
+}
+
+export func smoothstep(from: number, to: number, value: number): number {
+    const t = clamp(inverseLerp(from, to, value), 0, 1)
+    return t * t * (3 - 2 * t)
+}
+
+export func roundTo(value: number, digits: int = 0): number {
+    const factor = Math.pow(10, digits)
+    return Math.round(value * factor) / factor
+}

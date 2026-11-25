@@ -1,0 +1,75 @@
+use { createRandom, pick, weighted, shuffle } from "../random/main"
+
+test("a seeded random repeats itself", () => {
+    const a = createRandom(7)
+    const b = createRandom(7)
+    const first = [a.int(1, 100), a.int(1, 100), a.int(1, 100)]
+    assertDeepEqual([b.int(1, 100), b.int(1, 100), b.int(1, 100)], first)
+    for (let i = 0; i < 50; i++) {
+        const value = a.int(3, 5)
+        assert(value >= 3 && value <= 5)
+    }
+    assert(["x", "y"].includes(pick(a, ["x", "y"]) ?? ""))
+    assertEqual(pick(a, []), undefined)
+})
+
+test("a seed is a seed whatever number it is", () => {
+    const first = (seed: number) => createRandom(seed).next()
+    assertEqual(first(7), 0.011704753153026104)
+    assertEqual(first(-1), 0.8964226141106337)
+    assertEqual(first(4294967301), 0.6897749109193683)
+    assertEqual(first(1e12), 0.9827820791397244)
+    assertEqual(first(4294967296), first(0))
+    assertEqual(first(-0), first(0))
+    const seeds = [0, 0.5, -0.5, 1.5, Infinity, -Infinity, 1e-300]
+    assertEqual(new Set(seeds.map(first)).size, seeds.length)
+    assertEqual(first(0.5), first(0.5))
+    const random = createRandom(3)
+    const seen = new Set<number>()
+    for (let i = 0; i < 200; i++) {
+        const value = random.int(1.5, 3.5)
+        assert(Number.isInteger(value) && value >= 2 && value <= 3)
+        seen.add(random.int(5, 1))
+    }
+    assertDeepEqual(Array.from(seen).sort((a, b) => a - b), [1, 2, 3, 4, 5])
+    assertEqual(random.int(4, 4), 4)
+    assertEqual(random.int(-2.5, -1.5), -2)
+    assertThrows(() => random.int(1.2, 1.8), RangeError)
+    assertThrows(() => random.int(0, Infinity), RangeError)
+})
+
+test("a seeded random can be saved and goes on where it was", () => {
+    const a = createRandom(11)
+    a.next()
+    const saved = a.state() ?? 0
+    const ahead = [a.next(), a.next()]
+    const b = createRandom(99)
+    b.setState(saved)
+    assertDeepEqual([b.next(), b.next()], ahead)
+    assertEqual(b.seed(), 99)
+    const loose = createRandom()
+    assertEqual(loose.state(), null)
+    assertThrows(() => loose.setState(1), "no state")
+})
+
+test("weighted picks by weight and skips what weighs nothing", () => {
+    const random = createRandom(5)
+    const counts: Record<string, number> = { a: 0, b: 0, c: 0 }
+    for (let i = 0; i < 4000; i++) counts[weighted(random, [["a", 1], ["b", 3], ["c", 0]]) ?? "c"]++
+    assertEqual(counts.c, 0)
+    assert(counts.b > counts.a * 2.5 && counts.b < counts.a * 3.5)
+    assertEqual(weighted(random, [["x", -1], ["y", 2]]), "y")
+    assertEqual(weighted(random, [["x", 0]]), undefined)
+    assertEqual(weighted(random, []), undefined)
+    const steady = (seed: number) => weighted(createRandom(seed), [["a", 1], ["b", 1]])
+    assertEqual(steady(3), steady(3))
+})
+
+test("shuffle keeps every item and leaves the original alone", () => {
+    const items = [1, 2, 3, 4, 5, 6]
+    const mixed = shuffle(createRandom(2), items)
+    assertDeepEqual(items, [1, 2, 3, 4, 5, 6])
+    assertDeepEqual(mixed.slice().sort((a, b) => a - b), items)
+    assertDeepEqual(shuffle(createRandom(2), items), mixed)
+    assertDeepEqual(shuffle(createRandom(2), []), [])
+})

@@ -1,6 +1,6 @@
 # slim-std
 
-The standard library of [Slim](https://github.com/cdmtn/slim-lang): custom types, converters, file reading, small helpers and time formatting.
+The standard library of [Slim](https://github.com/cdmtn/slim-lang): custom types, converters, file reading, small helpers, time formatting, random numbers and math.
 
 ## Setup
 
@@ -43,6 +43,8 @@ The full guide is in [`docs/`](docs/index.md):
 - [Types](docs/02-types.md): `positive`, `natural`, `email`, `url`, `uuid`, `SemVer` and the others
 - [Converters](docs/03-converters.md): `int`, `float`, `bool`, `json` and the others
 - [Reading files](docs/04-parse.md): `parseJSON`, `parseText`
-- [Helpers](docs/05-helpers.md): `range`, `StringHelper`, `RequestHelper`, `replaceBackslashes`
+- [Helpers](docs/05-helpers.md): `range`, `StringHelper` (`pad`, `splitArgs`, `hash`...), `RequestHelper`, `replaceBackslashes`
 - [Time](docs/06-time.md): `TimeHelper`
 - [The project](docs/07-project.md): `getVersion`, `getPackageData`, `getConfigData`
+- [Random](docs/08-random.md): `createRandom`, `pick`, `weighted`, `shuffle`
+- [Math](docs/09-math.md): `clamp`, `lerp`, `inverseLerp`, `smoothstep`, `roundTo`

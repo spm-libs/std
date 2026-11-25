@@ -5,6 +5,7 @@ use StringHelper from "../helpers/string"
 use { replaceBackslashes } from "../helpers/path"
 use { RequestHelper } from "../helpers/request"
 use TimeHelper from "../time/main"
+use { createHash } from "node:crypto"
 use { getConfigData } from "../main"
 
 test("converters", () => {
@@ -39,6 +40,16 @@ test("helpers", () => {
     assertEqual(StringHelper.truncate("hello world", 5), "hello...")
     assertEqual(StringHelper.truncate("hi", 5), "hi")
     assertEqual(StringHelper.hash("abc"), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    for (const text of ["", "abc", "naïve café €", "😀 smile", "\uD800 lone", "x".repeat(55), "y".repeat(56), "z".repeat(64), "w".repeat(1000)]) {
+        assertEqual(StringHelper.hash(text), createHash("sha256").update(text).digest("hex"))
+    }
+    assertEqual(StringHelper.pad(7, 2), "07")
+    assertEqual(StringHelper.pad(123, 2), "123")
+    assertEqual(StringHelper.pad(-5, 3), "-05")
+    assertEqual(StringHelper.pad("a", 3, "."), "..a")
+    assertDeepEqual(StringHelper.splitArgs(`copy "my file.txt" out 'a b'`), ["copy", "my file.txt", "out", "a b"])
+    assertDeepEqual(StringHelper.splitArgs(`say "" "open`), ["say", "", "open"])
+    assertDeepEqual(StringHelper.splitArgs("   "), [])
     assertEqual(StringHelper.quickHash("hello"), 99162322)
     assertEqual(StringHelper.quickHash("a"), 97)
     assertEqual(replaceBackslashes(String.raw`a\b\c`), "a/b/c")

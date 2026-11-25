@@ -1,0 +1,37 @@
+use { readFileSync } from "node:fs"
+use { dirname, join } from "node:path"
+
+const PORTABLE = [
+    "types/common", "types/formats", "types/hash", "types/mails", "types/numerical", "types/time",
+    "converters/main", "helpers/array", "helpers/path", "helpers/string", "helpers/sha256",
+    "time/main", "random/main", "math/main",
+]
+
+func imports(text: string): string[] {
+    const found: string[] = []
+    for (const match of text.matchAll(/^\s*use\b[^\n]*?\bfrom\s+["']?([^"'\s;]+)/gm)) found.push(match[1])
+    return found
+}
+
+test("the portable modules use nothing of Node", () => {
+    const seen = new Set<string>()
+    const queue = PORTABLE.map((name) => `${name}.slim`)
+    const outside: string[] = []
+    while (queue.length) {
+        const file = queue.pop() ?? ""
+        if (seen.has(file)) continue
+        seen.add(file)
+        const text = readFileSync(file, "utf8")
+        for (const target of imports(text)) {
+            if (target.startsWith(".")) queue.push(join(dirname(file), `${target}.slim`).replace(/\\/g, "/"))
+            else outside.push(`${file} imports ${target}`)
+        }
+        if (/\bprocess\.|\brequire\(|\bfetch\(/.test(text)) outside.push(`${file} uses a Node global`)
+    }
+    assertDeepEqual(outside, [])
+    assert(seen.size >= PORTABLE.length)
+})
+
+test("the check sees what needs Node", () => {
+    assertDeepEqual(imports(readFileSync("parse/main.slim", "utf8")), ["node:fs/promises", "node:path"])
+})

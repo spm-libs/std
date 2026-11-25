@@ -1,4 +1,4 @@
-use * as crypto from "node:crypto"
+use { sha256 } from "./sha256"
 use { SHA256, QuickHash } from "../types/hash"
 
 export default const StringHelper: object = {
@@ -12,7 +12,21 @@ export default const StringHelper: object = {
         return str;
     },
     hash(str: string): SHA256 {
-        return crypto.createHash("sha256").update(str).digest("hex")
+        return sha256(str)
+    },
+    pad(value: string | number, width: int, fill: string = "0"): string {
+        if (typeof value == "number" && value < 0) return "-" + String(-value).padStart(width - 1, fill)
+        return String(value).padStart(width, fill)
+    },
+    splitArgs(line: string): string[] {
+        const parts: string[] = []
+        const pattern = /"([^"]*)"?|'([^']*)'?|(\S+)/g
+        let match = pattern.exec(line)
+        while (match) {
+            parts.push(match[1] ?? match[2] ?? match[3])
+            match = pattern.exec(line)
+        }
+        return parts
     },
     quickHash(str: string): QuickHash {
         let hash = 0;

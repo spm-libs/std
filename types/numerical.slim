@@ -16,3 +16,6 @@ export type negative(v) extends number {
 export type natural(v) extends int {
     return v >= 0
 }
+export type unit(v) extends number {
+    return v >= 0 && v <= 1
+}

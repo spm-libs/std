@@ -38,6 +38,7 @@ Each type first checks the kind of value with `extends` (`extends string`, `exte
 | `nonZero` | An `int` or a `float` other than `0` |
 | `even` | An even `int` |
 | `odd` | An odd `int` |
+| `unit` | A number from `0` to `1`, both included: `0`, `0.25`, `1`. For a share, a volume, an opacity |
 
 ## @std/types/formats
 

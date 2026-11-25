@@ -36,3 +36,5 @@ struct SlimConfig {
 `?` makes a field optional: it can be left out or be `undefined`, so a `package.json` without `main` still gives a `Slim`.
 
 A `version` in `package.json` that isn't a semantic version gives an empty `Slim` too, and `getVersion` then throws a `TypeError`: it must return a `SemVer`.
+
+Next: [Random](08-random.md).

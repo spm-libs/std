@@ -1,12 +1,12 @@
-use fs from "node:fs/promises"
-use path from "node:path"
+use { readFile } from "node:fs/promises"
+use { join } from "node:path"
 
 export class ReadError extends Error {}
 
 export async func parseJSON(fpath: string): object {
     try {
-        const filePath: string = path.join(fpath); 
-        const data: string = await fs.readFile(filePath, 'utf8');
+        const filePath: string = join(fpath); 
+        const data: string = await readFile(filePath, 'utf8');
 
         return JSON.parse(data)
     } catch (err) {
@@ -15,8 +15,8 @@ export async func parseJSON(fpath: string): object {
 }
 export async func parseText(fpath: string): string {
     try {
-        const filePath: string = path.join(fpath); 
-        const data: string = await fs.readFile(filePath, 'utf8');
+        const filePath: string = join(fpath); 
+        const data: string = await readFile(filePath, 'utf8');
 
         return data
     } catch (err) {

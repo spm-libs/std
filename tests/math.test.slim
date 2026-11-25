@@ -1,0 +1,19 @@
+use { clamp, lerp, inverseLerp, smoothstep, roundTo } from "../math/main"
+
+test("math", () => {
+    assertEqual(clamp(5, 0, 3), 3)
+    assertEqual(clamp(-1, 0, 3), 0)
+    assertEqual(clamp(2, 0, 3), 2)
+    assertEqual(lerp(0, 10, 0.25), 2.5)
+    assertEqual(lerp(0, 10, 2), 20)
+    assertEqual(inverseLerp(0, 10, 5), 0.5)
+    assertEqual(inverseLerp(4, 4, 9), 0)
+    assertEqual(smoothstep(0, 1, 0.5), 0.5)
+    assertEqual(smoothstep(0, 1, -3), 0)
+    assertEqual(smoothstep(0, 1, 3), 1)
+    assertEqual(roundTo(2.345, 1), 2.3)
+    assertEqual(roundTo(2.35, 1), 2.4)
+    assertEqual(roundTo(1234.5), 1235)
+    assertEqual(roundTo(1234, -2), 1200)
+    assertEqual(roundTo(-2.5), -2)
+})

@@ -10,8 +10,6 @@ use { range } from @std/helpers/array
 log(range(1, 5)) // [1, 2, 3, 4, 5]
 ```
 
-Importing the module also changes `Array.prototype.sort` for the whole program: called without a comparator on an array of numbers only, it sorts them by value instead of as text. Slim code passes a comparator anyway (the checker asks for one), so this matters only to JavaScript the program calls.
-
 ## @std/helpers/string
 
 The default export `StringHelper` is a locked object: its functions can't be replaced.
@@ -23,13 +21,17 @@ log(StringHelper.len("hello"))                  // 5
 log(StringHelper.truncate("hello world", 5))    // hello...
 log(StringHelper.hash("abc").length)            // 64
 log(StringHelper.quickHash("hello"))            // 99162322
+log(StringHelper.pad(7, 2))                     // 07
+log(StringHelper.splitArgs(`copy "my file.txt" out`)) // ["copy", "my file.txt", "out"]
 ```
 
 | Function | What it does |
 |---|---|
 | `len(str) -> int` | The length |
 | `truncate(str, maxLength) -> string` | The first `maxLength` characters and `...` when the string is longer; the string itself otherwise |
-| `hash(str) -> SHA256` | SHA-256 in hex (`node:crypto`, so Node only) |
+| `hash(str) -> SHA256` | SHA-256 of the string's UTF-8 bytes, in hex. Plain JavaScript, so it runs outside Node too |
+| `pad(value, width, fill = "0") -> string` | `value` as text, filled on the left up to `width`: `pad(7, 2)` is `"07"`, `pad(-5, 3)` is `"-05"` (a negative number keeps its sign in front); longer values are left as they are |
+| `splitArgs(line) -> string[]` | The words of a command line: split on whitespace, with words in double or single quotes kept together without the quotes. `""` is an empty word, and a quote left open runs to the end of the line |
 | `quickHash(str) -> QuickHash` | A fast 32-bit hash as a number. Not for security; it can be negative |
 
 ## @std/helpers/path
